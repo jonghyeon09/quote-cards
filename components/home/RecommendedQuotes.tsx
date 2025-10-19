@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export type RecommendedQuote = {
   id: number | string;
   text: string;
@@ -26,9 +28,12 @@ export default function RecommendedQuotes({ quotes }: RecommendedQuotesProps) {
             <p className="text-xs text-gray-500">
               {quote.author} · {quote.era}
             </p>
-            <button className="w-full rounded-full bg-gray-900 py-2 text-sm font-medium text-white shadow-sm">
+            <Link
+              href="/create"
+              className="inline-flex w-full items-center justify-center rounded-full bg-gray-900 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-gray-800"
+            >
               명언 카드 만들기
-            </button>
+            </Link>
           </article>
         ))}
       </div>

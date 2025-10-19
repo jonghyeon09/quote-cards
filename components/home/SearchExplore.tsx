@@ -1,3 +1,4 @@
+import Link from "next/link";
 import FilterChip from "@/components/home/FilterChip";
 
 export type FilterGroup = {
@@ -27,19 +28,24 @@ export default function SearchExplore({
     <section className="rounded-3xl border border-dashed border-gray-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="text-lg font-semibold">탐색 & 검색</h2>
+          <h2 className="text-lg font-semibold">검색 & 탐색</h2>
           <p className="mt-1 text-xs text-gray-500">
-            키워드, 필터, 정렬로 딱 맞는 명언을 찾아보세요.
+            원하는 필터, 정렬로 맞는 명언을 찾아보세요.
           </p>
         </div>
         <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-gray-50 px-4 py-3">
-          <span className="text-sm text-gray-500">🔍</span>
+          <span className="text-sm text-gray-500">검색</span>
           <input
             type="search"
             placeholder={searchPlaceholder}
             className="w-full bg-transparent text-sm outline-none placeholder:text-gray-400"
           />
-          <button className="text-xs font-semibold text-indigo-500">검색</button>
+          <button
+            type="button"
+            className="text-xs font-semibold text-indigo-500 transition hover:text-indigo-600"
+          >
+            검색
+          </button>
         </div>
         <div className="flex items-center gap-3 text-xs font-medium text-gray-600">
           <span>정렬</span>
@@ -72,12 +78,15 @@ export default function SearchExplore({
         <div className="rounded-2xl bg-gray-50 p-4">
           <p className="text-xs font-semibold text-gray-600">추천 결과</p>
           <div className="mt-3 space-y-2">
-            <p className="text-sm font-semibold leading-6">“{highlight.text}”</p>
+            <p className="text-sm font-semibold leading-6">{highlight.text}</p>
             <p className="text-[11px] text-gray-500">{highlight.meta}</p>
           </div>
-          <button className="mt-4 w-full rounded-full bg-indigo-500 py-2 text-sm font-medium text-white shadow-sm">
+          <Link
+            href="/create"
+            className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-indigo-500 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-600"
+          >
             이 명언으로 카드 만들기
-          </button>
+          </Link>
         </div>
       </div>
     </section>
