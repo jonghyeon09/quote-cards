@@ -1,273 +1,180 @@
-'use client';
+import ThemeOfTheDay, { DailyTheme } from '@/components/home/ThemeOfTheDay';
+import RecommendedQuotes, {
+  RecommendedQuote,
+} from '@/components/home/RecommendedQuotes';
+import TrendingAuthors, {
+  TrendingAuthor,
+} from '@/components/home/TrendingAuthors';
+import RecentCreations, {
+  RecentCreation,
+} from '@/components/home/RecentCreations';
+import WeeklyTemplates, {
+  WeeklyTemplate,
+} from '@/components/home/WeeklyTemplates';
+import SearchExplore, {
+  ExploreHighlight,
+  FilterGroup,
+} from '@/components/home/SearchExplore';
+import { quotes } from '@/data/quotes';
 
-import { useEffect, useMemo, useState } from 'react';
+const dailyThemes: DailyTheme[] = [
+  {
+    id: 'monday-motivation',
+    title: '월요동기',
+    description:
+      '느슨해진 루틴을 다시 붙잡을 시간. 오늘은 당신의 의지가 가장 빛나요.',
+    tags: ['새로운 시작', '집중'],
+    accent: 'from-orange-100 to-rose-100',
+  },
+  {
+    id: 'healing',
+    title: '힐링',
+    description:
+      '다정한 단어가 마음의 파도를 잠재워요. 스스로를 토닥여 주세요.',
+    tags: ['휴식', '자기돌봄'],
+    accent: 'from-teal-100 to-sky-100',
+  },
+  {
+    id: 'focus',
+    title: '집중',
+    description: '산만함을 잠시 멈추고, 한 문장에 몰입해 보세요.',
+    tags: ['몰입', '심화'],
+    accent: 'from-violet-100 to-indigo-100',
+  },
+];
 
-type Quote = {
-  id: string;
-  text: string;
-  author: string;
-  tags?: string[];
+const themeOfTheDay = dailyThemes[0];
+
+const recommendedQuotes: RecommendedQuote[] = quotes
+  .filter((quote) => quote.categories.includes('동기'))
+  .slice(0, 3)
+  .map((quote) => ({
+    id: quote.id,
+    text: quote.text,
+    author: quote.author,
+    era: quote.era ?? '현대',
+  }));
+
+const authorHighlights: Record<string, string> = {
+  아리스토텔레스: '균형과 덕목의 조언',
+  '벨 훅스': '사랑과 관계에 대한 통찰',
+  '넬슨 만델라': '용기와 화합의 언어',
+  루미: '영감과 관조의 시',
 };
 
-type RecentEdit = {
-  id: string;
-  title: string;
-  preview: string;
-  updatedAt: string; // ISO string
-};
+const trendingAuthorNames = [
+  '아리스토텔레스',
+  '벨 훅스',
+  '넬슨 만델라',
+  '루미',
+];
 
-function SectionHeader({
-  title,
-  subtitle,
-  action,
-}: {
-  title: string;
-  subtitle?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-end justify-between gap-4">
-      <div>
-        <h2 className="text-xl sm:text-2xl font-semibold text-foreground">
-          {title}
-        </h2>
-        {subtitle ? (
-          <p className="text-sm text-foreground/70 mt-1">{subtitle}</p>
-        ) : null}
-      </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
-    </div>
-  );
-}
-
-function QuoteCard({ quote }: { quote: Quote }) {
-  return (
-    <article className="rounded-xl border border-foreground/10 bg-background shadow-sm hover:shadow-md transition-shadow p-4 sm:p-5">
-      <p className="text-sm sm:text-base leading-relaxed">“{quote.text}”</p>
-      <div className="mt-3 text-right text-sm text-foreground/70">
-        — {quote.author}
-      </div>
-      {quote.tags?.length ? (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {quote.tags.map((t) => (
-            <span
-              key={t}
-              className="text-xs px-2 py-0.5 rounded-full bg-foreground/5 text-foreground/70"
-            >
-              #{t}
-            </span>
-          ))}
-        </div>
-      ) : null}
-    </article>
-  );
-}
-
-function RecentCard({ item }: { item: RecentEdit }) {
-  const date = useMemo(() => new Date(item.updatedAt), [item.updatedAt]);
-  const formatted = useMemo(
-    () =>
-      `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
-        2,
-        '0'
-      )}.${String(date.getDate()).padStart(2, '0')}`,
-    [date]
-  );
-  return (
-    <article className="rounded-xl border border-foreground/10 bg-background p-4 sm:p-5 hover:bg-foreground/5 transition-colors">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h4 className="font-medium text-foreground">{item.title}</h4>
-          <p className="mt-1 text-sm text-foreground/70 line-clamp-2">
-            {item.preview}
-          </p>
-        </div>
-        <span className="text-xs text-foreground/60 whitespace-nowrap">
-          {formatted}
-        </span>
-      </div>
-    </article>
-  );
-}
-
-export default function Home() {
-  const [query, setQuery] = useState('');
-  const [recent, setRecent] = useState<RecentEdit[]>([]);
-
-  // 데모용 추천/트렌딩 더미 데이터
-  const recommended: Quote[] = [
-    {
-      id: 'r1',
-      text: '위대한 일은 작은 일들의 연속이다.',
-      author: '빈센트 반 고흐',
-      tags: ['영감', '꾸준함'],
-    },
-    {
-      id: 'r2',
-      text: '성공은 준비와 기회의 만남이다.',
-      author: '세네카',
-      tags: ['성공', '준비'],
-    },
-    {
-      id: 'r3',
-      text: '느리더라도 멈추지 마라.',
-      author: '공자',
-      tags: ['꾸준함'],
-    },
-  ];
-
-  const trending: Quote[] = [
-    {
-      id: 't1',
-      text: '당신이 할 수 있다고 믿든 할 수 없다고 믿든, 믿는 대로 된다.',
-      author: '헨리 포드',
-      tags: ['자신감'],
-    },
-    {
-      id: 't2',
-      text: '오늘 걷지 않으면 내일 뛰어야 한다.',
-      author: '작자 미상',
-      tags: ['동기부여'],
-    },
-    {
-      id: 't3',
-      text: '지금이 가장 늦었다고 생각할 때가 가장 빠르다.',
-      author: '박명수',
-      tags: ['시작'],
-    },
-    {
-      id: 't4',
-      text: '행동은 모든 성공의 기초다.',
-      author: '파블로 피카소',
-      tags: ['행동'],
-    },
-  ];
-
-  // 최근 편집 항목 로드 (localStorage)
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('recentEdits');
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as RecentEdit[];
-      if (Array.isArray(parsed)) setRecent(parsed);
-    } catch {
-      // ignore JSON error
+const trendingAuthors: TrendingAuthor[] = trendingAuthorNames
+  .map((name) => {
+    const representativeQuote = quotes.find((quote) => quote.author === name);
+    if (!representativeQuote) {
+      return null;
     }
-  }, []);
+    return {
+      id: name,
+      name,
+      highlight: authorHighlights[name] ?? '',
+      sampleQuote: representativeQuote.text,
+    };
+  })
+  .filter((author): author is TrendingAuthor => Boolean(author));
 
-  function onSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!query.trim()) return;
-    // 검색 라우트는 이후 구현 예정. 우선 쿼리 상태만 유지
-  }
+const recentCreations: RecentCreation[] = [
+  {
+    id: 'calm-morning',
+    title: '차분한 월요일',
+    mood: '힐링 · 한국어',
+    updated: '2시간 전',
+    palette: ['#FEE2E2', '#F4F4F5', '#F97316'],
+  },
+  {
+    id: 'bold-focus',
+    title: '집중 모드',
+    mood: '동기 · 영어',
+    updated: '어제',
+    palette: ['#E0E7FF', '#EEF2FF', '#6366F1'],
+  },
+  {
+    id: 'night-notes',
+    title: '밤의 기록',
+    mood: '지혜 · 한국어',
+    updated: '3일 전',
+    palette: ['#F3E8FF', '#EDE9FE', '#8B5CF6'],
+  },
+];
 
+const weeklyTemplates: WeeklyTemplate[] = [
+  {
+    id: 'sunrise',
+    title: 'Sunrise Gradient',
+    description: '따뜻한 그라데이션과 라운드 타이포로 활력을 주는 스타터 카드.',
+    tone: '동기 · 짧은 문장',
+    colors: ['#FFEDD5', '#FED7AA', '#FB923C'],
+  },
+  {
+    id: 'linen-notes',
+    title: 'Linen Notes',
+    description:
+      '천 질감과 부드러운 파스텔로 담담한 힐링 메시지를 담기 좋아요.',
+    tone: '힐링 · 보통 길이',
+    colors: ['#F5F5F4', '#E7E5E4', '#A8A29E'],
+  },
+];
+
+const quickFilterGroups: FilterGroup[] = [
+  {
+    group: '카테고리',
+    items: ['힐링', '동기', '관계', '집중', '행운', '지혜', '성공', '사랑'],
+  },
+  {
+    group: '저자',
+    items: ['공자', '마하트마 간디', '헨리 포드', '버지니아 울프'],
+  },
+  {
+    group: '톤',
+    items: ['따뜻한', '단호한', '위트있는'],
+  },
+  {
+    group: '언어',
+    items: ['한국어', 'English'],
+  },
+];
+
+const sortOptions = ['인기', '최신', '짧은 문장 우선'];
+
+const searchHighlightQuote = quotes.find(
+  (quote) => quote.id === 'aristotle-hope'
+);
+
+const searchHighlight: ExploreHighlight = searchHighlightQuote
+  ? {
+      text: searchHighlightQuote.text,
+      meta: `${searchHighlightQuote.author} · ${searchHighlightQuote.era ?? '추천'}`,
+    }
+  : {
+      text: '원하는 명언을 검색해 보세요.',
+      meta: '추천 결과',
+    };
+
+export default function HomePage() {
   return (
-    <main className="min-h-dvh">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        {/* 헤더 */}
-        <header className="mb-8 sm:mb-10">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            명언 카드 만들기
-          </h1>
-          <p className="mt-2 text-foreground/70 text-sm sm:text-base">
-            검색하고 템플릿을 조합해 나만의 명언 카드를 만들고, 저장하고,
-            공유하세요.
-          </p>
-        </header>
-
-        {/* 검색 */}
-        <section className="mb-10">
-          <form onSubmit={onSearchSubmit} className="flex items-center gap-2">
-            <label htmlFor="quote-search" className="sr-only">
-              명언 검색
-            </label>
-            <input
-              id="quote-search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="명언, 작가, 태그 검색..."
-              className="w-full rounded-lg border border-foreground/15 bg-background px-4 py-2.5 text-sm sm:text-base outline-none focus:ring-2 focus:ring-foreground/30"
-            />
-            <button
-              type="submit"
-              className="rounded-lg bg-foreground text-background px-4 py-2.5 text-sm font-medium hover:opacity-90"
-            >
-              검색
-            </button>
-          </form>
-        </section>
-
-        {/* 오늘의 추천 */}
-        <section className="mb-12">
-          <SectionHeader
-            title="오늘의 추천"
-            subtitle="오늘의 영감을 위한 큐레이션"
-          />
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {recommended.map((q) => (
-              <QuoteCard key={q.id} quote={q} />
-            ))}
-          </div>
-        </section>
-
-        {/* 트렌딩 */}
-        <section className="mb-12">
-          <SectionHeader title="트렌딩" subtitle="지금 인기 있는 명언" />
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {trending.map((q) => (
-              <QuoteCard key={q.id} quote={q} />
-            ))}
-          </div>
-        </section>
-
-        {/* 최근 편집 */}
-        <section className="mb-6">
-          <SectionHeader
-            title="최근 편집"
-            subtitle="최근에 작업한 카드들"
-            action={
-              <button
-                type="button"
-                className="text-sm rounded-lg border border-foreground/20 px-3 py-1.5 hover:bg-foreground/5"
-                onClick={() => {
-                  // 데모용 더미 데이터 추가 (없을 때만)
-                  if (recent.length) return;
-                  const demo: RecentEdit[] = [
-                    {
-                      id: 'c1',
-                      title: '월요일 출근용 동기 부여 카드',
-                      preview: '오늘 걷지 않으면 내일 뛰어야 한다.',
-                      updatedAt: new Date().toISOString(),
-                    },
-                    {
-                      id: 'c2',
-                      title: '팀 뉴스레터 카드',
-                      preview: '행동은 모든 성공의 기초다.',
-                      updatedAt: new Date(Date.now() - 86400000).toISOString(),
-                    },
-                  ];
-                  localStorage.setItem('recentEdits', JSON.stringify(demo));
-                  setRecent(demo);
-                }}
-              >
-                샘플 추가
-              </button>
-            }
-          />
-          {recent.length === 0 ? (
-            <div className="mt-4 rounded-xl border border-foreground/10 p-6 text-sm text-foreground/70">
-              최근 편집한 카드가 없습니다. 상단 검색으로 시작하거나, 템플릿을
-              선택해 보세요.
-            </div>
-          ) : (
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {recent.map((item) => (
-                <RecentCard key={item.id} item={item} />
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-8 bg-[#F9FAFB] px-4 pb-24 pt-10 text-gray-900">
+      <ThemeOfTheDay theme={themeOfTheDay} themes={dailyThemes} />
+      <RecommendedQuotes quotes={recommendedQuotes} />
+      <TrendingAuthors authors={trendingAuthors} />
+      <RecentCreations creations={recentCreations} />
+      <WeeklyTemplates templates={weeklyTemplates} />
+      <SearchExplore
+        filterGroups={quickFilterGroups}
+        sortOptions={sortOptions}
+        searchPlaceholder="예: 일상 집중, 사랑, 용기"
+        highlight={searchHighlight}
+      />
     </main>
   );
 }
