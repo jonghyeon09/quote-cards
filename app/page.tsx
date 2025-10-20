@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import ThemeOfTheDay, { DailyTheme } from '@/components/home/ThemeOfTheDay';
 import RecommendedQuotes, {
   RecommendedQuote,
@@ -164,6 +165,28 @@ const searchHighlight: ExploreHighlight = searchHighlightQuote
 export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-8 bg-[#F9FAFB] px-4 pb-24 pt-10 text-gray-900">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">명언 카드</h1>
+          <p className="text-sm text-gray-500">
+            영감을 담은 카드를 만들어보세요
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            href="/gallery"
+            className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:bg-white"
+          >
+            보관함
+          </Link>
+          <Link
+            href="/create"
+            className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800"
+          >
+            만들기
+          </Link>
+        </div>
+      </header>
       <ThemeOfTheDay theme={themeOfTheDay} themes={dailyThemes} />
       <RecommendedQuotes quotes={recommendedQuotes} />
       <TrendingAuthors authors={trendingAuthors} />

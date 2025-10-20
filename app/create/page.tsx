@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { cardStorage } from '@/utils/cardStorage';
 
 type TabId = 'background' | 'template' | 'text' | 'detail' | 'complete';
 
@@ -156,6 +159,7 @@ const initialQuote = '오늘 마음에 남은 문장을 적어보세요.';
 const initialAuthor = '작가 이름';
 
 export default function CreateQuoteCardPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabId>('background');
   const [selectedBackground, setSelectedBackground] = useState(
     backgroundOptions[0].id
@@ -172,6 +176,9 @@ export default function CreateQuoteCardPage() {
   const [quoteAuthor, setQuoteAuthor] = useState(initialAuthor);
   const [showAuthor, setShowAuthor] = useState(true);
   const [copyFeedback, setCopyFeedback] = useState<'idle' | 'done' | 'error'>(
+    'idle'
+  );
+  const [saveFeedback, setSaveFeedback] = useState<'idle' | 'done' | 'error'>(
     'idle'
   );
 
@@ -204,6 +211,14 @@ export default function CreateQuoteCardPage() {
     return () => clearTimeout(timer);
   }, [copyFeedback]);
 
+  useEffect(() => {
+    if (saveFeedback === 'idle') {
+      return;
+    }
+    const timer = setTimeout(() => setSaveFeedback('idle'), 1800);
+    return () => clearTimeout(timer);
+  }, [saveFeedback]);
+
   const resetState = () => {
     setSelectedBackground(backgroundOptions[0].id);
     setSelectedTemplate(templateOptions[0].id);
@@ -233,6 +248,30 @@ export default function CreateQuoteCardPage() {
       setCopyFeedback('done');
     } catch {
       setCopyFeedback('error');
+    }
+  };
+
+  const handleSave = (redirectToGallery = false) => {
+    try {
+      cardStorage.save({
+        quoteText,
+        quoteAuthor,
+        showAuthor,
+        backgroundId: selectedBackground,
+        templateId: selectedTemplate,
+        ratioId: selectedRatio,
+        accentColor,
+        showAccent,
+      });
+      setSaveFeedback('done');
+
+      if (redirectToGallery) {
+        setTimeout(() => {
+          router.push('/gallery');
+        }, 600);
+      }
+    } catch {
+      setSaveFeedback('error');
     }
   };
 
@@ -449,20 +488,42 @@ export default function CreateQuoteCardPage() {
               </ul>
             </div>
             <p className="text-xs text-gray-500">{activeRatio.description}</p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
-              >
-                PNG로 내보내기
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('background')}
-                className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-gray-300 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900/40"
-              >
-                계속 수정하기
-              </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSave(false)}
+                  className="flex-1 rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+                >
+                  {saveFeedback === 'done'
+                    ? '저장됨 ✓'
+                    : saveFeedback === 'error'
+                      ? '저장 실패'
+                      : '보관함에 저장'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSave(true)}
+                  className="rounded-full border border-gray-900 px-4 py-2 text-sm font-semibold text-gray-900 transition hover:bg-gray-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900"
+                >
+                  저장 후 보관함으로
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                >
+                  PNG로 내보내기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('background')}
+                  className="rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                >
+                  계속 수정하기
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -474,9 +535,17 @@ export default function CreateQuoteCardPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-6 bg-[#F9FAFB] px-4 pb-32 pt-10 text-gray-900">
       <header className="flex flex-col gap-1">
-        <p className="text-xs font-medium uppercase text-gray-500">
-          Quote Builder
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-medium uppercase text-gray-500">
+            Quote Builder
+          </p>
+          <Link
+            href="/gallery"
+            className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-gray-300 hover:bg-white"
+          >
+            보관함 →
+          </Link>
+        </div>
         <h1 className="text-2xl font-semibold text-gray-900">
           명언 카드 만들기
         </h1>
